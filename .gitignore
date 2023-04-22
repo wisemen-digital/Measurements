@@ -42,3 +42,4 @@ crashlytics.properties
 
 # signing
 signing.gradle
+/.idea/
