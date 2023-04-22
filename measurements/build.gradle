@@ -31,14 +31,24 @@ android {
         jvmTarget = '1.8'
     }
     namespace 'be.appwise.measurements'
+
+    testOptions {
+        unitTests.all {
+            useJUnitPlatform()
+        }
+    }
 }
 
 dependencies {
 
     implementation "androidx.core:core-ktx:$core_ktx_version"
-    testImplementation "junit:junit:$junit_version"
-    androidTestImplementation "androidx.test.ext:junit:$junit_ext_version"
-    androidTestImplementation "androidx.test.espresso:espresso-core:$espresso_core_version"
+
+    testImplementation(platform('org.junit:junit-bom:5.9.2'))
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+
+//    testImplementation "junit:junit:$junit_version"
+//    androidTestImplementation "androidx.test.ext:junit:$junit_ext_version"
+//    androidTestImplementation "androidx.test.espresso:espresso-core:$espresso_core_version"
 }
 
 task sourceJar(type: Jar) {
