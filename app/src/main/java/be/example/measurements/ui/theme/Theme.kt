@@ -1,4 +1,4 @@
-package be.appwise.measurements.ui.theme
+package be.example.measurements.ui.theme
 
 import android.app.Activity
 import android.os.Build
@@ -38,7 +38,7 @@ private val LightColorScheme = lightColorScheme(
 )
 
 @Composable
-fun MeasruementsTheme(
+fun MeasurementsTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     // Dynamic color is available on Android 12+
     dynamicColor: Boolean = true,

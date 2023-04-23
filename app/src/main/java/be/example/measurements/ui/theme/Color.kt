@@ -1,4 +1,4 @@
-package be.appwise.measurements.ui.theme
+package be.example.measurements.ui.theme
 
 import androidx.compose.ui.graphics.Color
 

@@ -4,11 +4,11 @@ plugins {
 }
 
 android {
-    namespace 'be.appwise.measruements'
+    namespace 'be.example.measurements'
     compileSdk 33
 
     defaultConfig {
-        applicationId "be.appwise.measruements"
+        applicationId "be.example.measurements"
         minSdk 26
         targetSdk 33
         versionCode 1
