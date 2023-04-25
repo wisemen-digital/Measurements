@@ -1,5 +1,8 @@
 package be.appwise.measurements
 
+import android.icu.text.MeasureFormat
+import android.icu.text.NumberFormat
+import android.icu.util.MeasureUnit
 import android.os.Build
 import be.appwise.measurements.Measurement.Companion.convert
 import be.appwise.measurements.converters.UnitConverterLinear
@@ -7,11 +10,19 @@ import be.appwise.measurements.units.Dimension
 import be.appwise.measurements.units.Unit
 import be.appwise.measurements.units.UnitLength
 import be.appwise.measurements.units.UnitMass
+import io.mockk.every
+import io.mockk.junit5.MockKExtension
+import io.mockk.mockk
+import io.mockk.mockkStatic
+import io.mockk.unmockkStatic
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
+import org.junit.jupiter.api.extension.Extension
 import java.lang.reflect.Field
 import java.lang.reflect.Modifier
+import java.util.*
 
 internal class MeasurementTest {
 
@@ -68,12 +79,40 @@ internal class MeasurementTest {
 
     @Test
     fun testFormat() {
+        val m1 = Measurement(2.1352, UnitMass.kilograms)
+        assertEquals("2.135 kg", m1.format())
+    }
+
+    @Test // TODO: invalid test
+    fun testFormatHigherThanN() {
+
+        mockkStatic(NumberFormat::class)
+
+        // Create a partial mock object of NumberFormat
+        val numberFormatPartialMock = mockk<NumberFormat>(relaxed = true, relaxUnitFun = true)
+        // Define the behavior of maximumFractionDigits on the mock object
+        every { numberFormatPartialMock.maximumFractionDigits } returns 2
+        // Mock the behavior of getNumberInstance() on the mock object
+        every { NumberFormat.getNumberInstance(Locale.getDefault()) } returns numberFormatPartialMock
+
+        mockkStatic(MeasureFormat::class)
+        val measureFormatMock = mockk<MeasureFormat>()
+        every { MeasureFormat.getInstance(Locale.getDefault(), MeasureFormat.FormatWidth.SHORT, numberFormatPartialMock) } returns measureFormatMock
+
+        //TODO: not working quite right, the `MeasureUnit.KILOGRAM` is always returning `null` because it's an `Android framework` function/class...
+//        mockkStatic(MeasureUnit.KILOGRAM::class)
+//        val measureUnit = mockk<MeasureUnit>(relaxed = true, relaxUnitFun = true)
+//        every { UnitMass.kilograms.measureUnit } returns measureUnit
+
+        setFinalStatic(Build.VERSION::class.java.getField("SDK_INT"), 33)
+
         val m3 = Measurement(2.1352, UnitMass.kilograms)
-
-
         assertEquals("2.135 kg", m3.format())
 
-        setFinalStatic(Build.VERSION::class.java.getField("SDK_INT"), 31)
+        setFinalStatic(Build.VERSION::class.java.getField("SDK_INT"), 0)
+
+        unmockkStatic(NumberFormat::class)
+        unmockkStatic(MeasureFormat::class)
     }
 
     // <editor-fold desc="Calculations">
@@ -277,4 +316,14 @@ internal class MeasurementTest {
         assertEquals(2.0, (m1 * 2.toShort()).value)
     }
     // </editor-fold>
+}
+
+fun setFinalStatic(field: Field, newValue: Any) {
+    field.isAccessible = true
+
+    val modifiersField = Field::class.java.getDeclaredField("modifiers")
+    modifiersField.isAccessible = true
+    modifiersField.setInt(field, field.modifiers and Modifier.FINAL.inv())
+
+    field.set(null, newValue)
 }
