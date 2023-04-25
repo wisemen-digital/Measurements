@@ -1,8 +1,16 @@
 package be.appwise.measurements
 
+import android.icu.text.MeasureFormat
+import android.icu.text.NumberFormat
+import android.icu.util.Measure
+import android.os.Build
+import androidx.annotation.IntRange
 import be.appwise.measurements.Measurement.Companion.equals
 import be.appwise.measurements.units.Dimension
 import be.appwise.measurements.units.Unit
+import java.math.RoundingMode
+import java.text.DecimalFormat
+import java.util.*
 
 class Measurement<in UnitType : Unit>(var value: Double, unit: UnitType) {
 
@@ -61,6 +69,30 @@ class Measurement<in UnitType : Unit>(var value: Double, unit: UnitType) {
     override fun toString(): String {
         return "\"measurement\": { \"value\": \"$value\", \"symbol\": \"${unit.symbol}\" }"
     }
+}
+
+fun <UnitType : Dimension> Measurement<UnitType>.format(@IntRange(0, Long.MAX_VALUE) maximumFractionDigits: Int = 2, measureFormat: MeasureFormat? = defaultFormat(maximumFractionDigits)): String {
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && unit.measureUnit != null && measureFormat != null) {
+        return measureFormat.format(Measure(value, unit.measureUnit))
+    }
+
+    val formatter = DecimalFormat("#." + (0..maximumFractionDigits).joinToString("") { "#" })
+    formatter.roundingMode = RoundingMode.HALF_EVEN
+    val formattedValue = formatter.format(value)
+
+    return "$formattedValue ${unit.symbol}"
+}
+
+private fun defaultFormat(@IntRange(0, Long.MAX_VALUE) maximumFractionDigits: Int = 2): MeasureFormat? {
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
+        return null
+    }
+
+    val nFormat = NumberFormat.getNumberInstance(Locale.getDefault()).also {
+        it.maximumFractionDigits = maximumFractionDigits
+    }
+    return MeasureFormat.getInstance(Locale.getDefault(), MeasureFormat.FormatWidth.SHORT, nFormat)
 }
 
 

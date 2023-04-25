@@ -1,5 +1,6 @@
 package be.appwise.measurements
 
+import android.os.Build
 import be.appwise.measurements.Measurement.Companion.convert
 import be.appwise.measurements.converters.UnitConverterLinear
 import be.appwise.measurements.units.Dimension
@@ -9,6 +10,8 @@ import be.appwise.measurements.units.UnitMass
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
+import java.lang.reflect.Field
+import java.lang.reflect.Modifier
 
 internal class MeasurementTest {
 
@@ -61,6 +64,16 @@ internal class MeasurementTest {
         assertEquals(""""measurement": { "value": "2.01", "symbol": "kg" }""", m1.toString())
         assertEquals(""""measurement": { "value": "2.1352", "symbol": "a" }""", m2.toString())
         assertEquals(""""measurement": { "value": "2.1352", "symbol": "a" }""", m3.toString())
+    }
+
+    @Test
+    fun testFormat() {
+        val m3 = Measurement(2.1352, UnitMass.kilograms)
+
+
+        assertEquals("2.135 kg", m3.format())
+
+        setFinalStatic(Build.VERSION::class.java.getField("SDK_INT"), 31)
     }
 
     // <editor-fold desc="Calculations">
