@@ -16,6 +16,38 @@ class Measurement<in UnitType : Unit>(var value: Double, unit: UnitType) {
 
     var unit: @UnsafeVariance UnitType = unit
         private set
+
+    // <editor-fold desc="Additions">
+    operator fun plus(other: Double): Measurement<UnitType> = Measurement(value + other, unit)
+    operator fun plus(other: Float): Measurement<UnitType> = Measurement(value + other, unit)
+    operator fun plus(other: Int): Measurement<UnitType> = Measurement(value + other, unit)
+    operator fun plus(other: Long): Measurement<UnitType> = Measurement(value + other, unit)
+    operator fun plus(other: Short): Measurement<UnitType> = Measurement(value + other, unit)
+    // </editor-fold>
+
+    // <editor-fold desc="Subtractions">
+    operator fun minus(other: Double): Measurement<UnitType> = Measurement(value - other, unit)
+    operator fun minus(other: Float): Measurement<UnitType> = Measurement(value - other, unit)
+    operator fun minus(other: Int): Measurement<UnitType> = Measurement(value - other, unit)
+    operator fun minus(other: Long): Measurement<UnitType> = Measurement(value - other, unit)
+    operator fun minus(other: Short): Measurement<UnitType> = Measurement(value - other, unit)
+    // </editor-fold>
+
+    // <editor-fold desc="Divisions">
+    operator fun div(other: Double): Measurement<UnitType> = Measurement(value / other, unit)
+    operator fun div(other: Float): Measurement<UnitType> = Measurement(value / other, unit)
+    operator fun div(other: Int): Measurement<UnitType> = Measurement(value / other, unit)
+    operator fun div(other: Long): Measurement<UnitType> = Measurement(value / other, unit)
+    operator fun div(other: Short): Measurement<UnitType> = Measurement(value / other, unit)
+    // </editor-fold>
+
+    // <editor-fold desc="Multiplications">
+    operator fun times(other: Double): Measurement<UnitType> = Measurement(value * other, unit)
+    operator fun times(other: Float): Measurement<UnitType> = Measurement(value * other, unit)
+    operator fun times(other: Int): Measurement<UnitType> = Measurement(value * other, unit)
+    operator fun times(other: Long): Measurement<UnitType> = Measurement(value * other, unit)
+    operator fun times(other: Short): Measurement<UnitType> = Measurement(value * other, unit)
+    // </editor-fold>
 }
 
 val <UnitType : Dimension> Measurement<UnitType>.description get() = "$value ${unit.symbol}"

@@ -57,6 +57,41 @@ internal class MeasurementTest {
     }
 
     @Test
+    fun testAdditionDouble() {
+        val m1 = Measurement(1.0, UnitMass.grams)
+
+        assertEquals(2.9, (m1 + 1.9).value)
+    }
+
+    @Test
+    fun testAdditionFloat() {
+        val m1 = Measurement(1.0, UnitMass.grams)
+
+        assertEquals(2.9f, (m1 + 1.9f).value.toFloat())
+    }
+
+    @Test
+    fun testAdditionInt() {
+        val m1 = Measurement(1.0, UnitMass.grams)
+
+        assertEquals(2.0, (m1 + 1).value)
+    }
+
+    @Test
+    fun testAdditionLong() {
+        val m1 = Measurement(1.0, UnitMass.grams)
+
+        assertEquals(2.0, (m1 + 1L).value)
+    }
+
+    @Test
+    fun testAdditionShort() {
+        val m1 = Measurement(1.0, UnitMass.grams)
+
+        assertEquals(2.0, (m1 + 1.toShort()).value)
+    }
+
+    @Test
     fun testSubtraction() {
         val m1 = Measurement(1.0, UnitMass.grams)
         val m2 = Measurement(2.0, UnitMass.grams)
@@ -69,6 +104,41 @@ internal class MeasurementTest {
         assertThrows(Exception::class.java) {
             m1 - m4
         }
+    }
+
+    @Test
+    fun testSubtractionDouble() {
+        val m1 = Measurement(1.0, UnitMass.grams)
+
+        assertEquals(-0.9, (m1 - 1.9).value, 1e-9)
+    }
+
+    @Test
+    fun testSubtractionFloat() {
+        val m1 = Measurement(1.0, UnitMass.grams)
+
+        assertEquals(-0.9f, (m1 - 1.9f).value.toFloat())
+    }
+
+    @Test
+    fun testSubtractionInt() {
+        val m1 = Measurement(1.0, UnitMass.grams)
+
+        assertEquals(0.0, (m1 - 1).value)
+    }
+
+    @Test
+    fun testSubtractionLong() {
+        val m1 = Measurement(1.0, UnitMass.grams)
+
+        assertEquals(0.0, (m1 - 1L).value)
+    }
+
+    @Test
+    fun testSubtractionShort() {
+        val m1 = Measurement(1.0, UnitMass.grams)
+
+        assertEquals(0.0, (m1 - 1.toShort()).value)
     }
 
     @Test
@@ -87,6 +157,41 @@ internal class MeasurementTest {
     }
 
     @Test
+    fun testDivisionDouble() {
+        val m1 = Measurement(1.0, UnitMass.grams)
+
+        assertEquals(0.5, (m1 / 2.0).value)
+    }
+
+    @Test
+    fun testDivisionFloat() {
+        val m1 = Measurement(1.0, UnitMass.grams)
+
+        assertEquals(0.5f, (m1 / 2.0f).value.toFloat())
+    }
+
+    @Test
+    fun testDivisionInt() {
+        val m1 = Measurement(1.0, UnitMass.grams)
+
+        assertEquals(0.5, (m1 / 2).value)
+    }
+
+    @Test
+    fun testDivisionLong() {
+        val m1 = Measurement(1.0, UnitMass.grams)
+
+        assertEquals(0.5, (m1 / 2L).value)
+    }
+
+    @Test
+    fun testDivisionShort() {
+        val m1 = Measurement(1.0, UnitMass.grams)
+
+        assertEquals(0.5, (m1 / 2.toShort()).value)
+    }
+
+    @Test
     fun testMultiplication() {
         val m1 = Measurement(1.0, UnitMass.grams)
         val m2 = Measurement(2.0, UnitMass.grams)
@@ -99,5 +204,40 @@ internal class MeasurementTest {
         assertThrows(Exception::class.java) {
             m1 * m4
         }
+    }
+
+    @Test
+    fun testMultiplicationDouble() {
+        val m1 = Measurement(1.0, UnitMass.grams)
+
+        assertEquals(2.0, (m1 * 2.0).value)
+    }
+
+    @Test
+    fun testMultiplicationFloat() {
+        val m1 = Measurement(1.0, UnitMass.grams)
+
+        assertEquals(2.0f, (m1 * 2.0f).value.toFloat())
+    }
+
+    @Test
+    fun testMultiplicationInt() {
+        val m1 = Measurement(1.0, UnitMass.grams)
+
+        assertEquals(2.0, (m1 * 2).value)
+    }
+
+    @Test
+    fun testMultiplicationLong() {
+        val m1 = Measurement(1.0, UnitMass.grams)
+
+        assertEquals(2.0, (m1 * 2L).value)
+    }
+
+    @Test
+    fun testMultiplicationShort() {
+        val m1 = Measurement(1.0, UnitMass.grams)
+
+        assertEquals(2.0, (m1 * 2.toShort()).value)
     }
 }
