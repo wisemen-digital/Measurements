@@ -1,9 +1,13 @@
 package be.appwise.measurements
 
 import be.appwise.measurements.Measurement.Companion.convert
+import be.appwise.measurements.converters.UnitConverterLinear
+import be.appwise.measurements.units.Dimension
+import be.appwise.measurements.units.Unit
 import be.appwise.measurements.units.UnitLength
 import be.appwise.measurements.units.UnitMass
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
 
 internal class MeasurementTest {
@@ -41,6 +45,25 @@ internal class MeasurementTest {
         assertEquals(0.001, m1.value)
     }
 
+    @Test
+    fun testToString() {
+        val s1 = "a"
+
+        val uc1 = UnitConverterLinear(coefficient = 1.0, constant = 2.0)
+
+        val u0 = Unit(symbol = s1)
+        val d1 = Dimension(symbol = s1, converter = uc1)
+
+        val m1 = Measurement(2.01, UnitMass.kilograms)
+        val m2 = Measurement(2.1352, d1)
+        val m3 = Measurement(2.1352, u0)
+
+        assertEquals(""""measurement": { "value": "2.01", "symbol": "kg" }""", m1.toString())
+        assertEquals(""""measurement": { "value": "2.1352", "symbol": "a" }""", m2.toString())
+        assertEquals(""""measurement": { "value": "2.1352", "symbol": "a" }""", m3.toString())
+    }
+
+    // <editor-fold desc="Calculations">
     @Test
     fun testAddition() {
         val m1 = Measurement(1.0, UnitMass.grams)
@@ -240,4 +263,5 @@ internal class MeasurementTest {
 
         assertEquals(2.0, (m1 * 2.toShort()).value)
     }
+    // </editor-fold>
 }

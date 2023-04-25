@@ -3,7 +3,7 @@ package be.appwise.measurements.units
 import android.icu.util.MeasureUnit
 import be.appwise.measurements.converters.UnitConverter
 
-open class Dimension(val symbol: String, val converter: UnitConverter, val measureUnit: MeasureUnit? = null) : Unit(symbol) {
+open class Dimension(symbol: String, val converter: UnitConverter, val measureUnit: MeasureUnit? = null) : Unit(symbol) {
 
     companion object;
 
