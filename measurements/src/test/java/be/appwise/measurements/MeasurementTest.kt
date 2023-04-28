@@ -2,7 +2,6 @@ package be.appwise.measurements
 
 import android.icu.text.MeasureFormat
 import android.icu.text.NumberFormat
-import android.icu.util.MeasureUnit
 import android.os.Build
 import be.appwise.measurements.Measurement.Companion.convert
 import be.appwise.measurements.converters.UnitConverterLinear
@@ -11,15 +10,14 @@ import be.appwise.measurements.units.Unit
 import be.appwise.measurements.units.UnitLength
 import be.appwise.measurements.units.UnitMass
 import io.mockk.every
-import io.mockk.junit5.MockKExtension
 import io.mockk.mockk
 import io.mockk.mockkStatic
 import io.mockk.unmockkStatic
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertThrows
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.extension.ExtendWith
-import org.junit.jupiter.api.extension.Extension
 import java.lang.reflect.Field
 import java.lang.reflect.Modifier
 import java.util.*
@@ -80,7 +78,9 @@ internal class MeasurementTest {
     @Test
     fun testFormat() {
         val m1 = Measurement(2.1352, UnitMass.kilograms)
-        assertEquals("2.135 kg", m1.format())
+        assertEquals("2.14 kg", m1.format())
+        assertEquals("2.135 kg", m1.format(3))
+        assertEquals("2.1352 kg", m1.format(4))
     }
 
     @Test // TODO: invalid test
@@ -107,12 +107,58 @@ internal class MeasurementTest {
         setFinalStatic(Build.VERSION::class.java.getField("SDK_INT"), 33)
 
         val m3 = Measurement(2.1352, UnitMass.kilograms)
-        assertEquals("2.135 kg", m3.format())
+        assertEquals("2.135 kg", m3.format(3))
 
         setFinalStatic(Build.VERSION::class.java.getField("SDK_INT"), 0)
 
         unmockkStatic(NumberFormat::class)
         unmockkStatic(MeasureFormat::class)
+    }
+
+    @Test
+    fun testEquality() {
+        val m1 = Measurement(2.0, UnitMass.kilograms)
+        val m2 = Measurement(2.0, UnitMass.kilograms)
+        val m3 = Measurement(2000.0, UnitMass.grams)
+        val m4 = Measurement(2.0, UnitLength.kilometers)
+
+        assertTrue(m1 == m2)
+        assertTrue(m1 == m3)
+        assertTrue(m3 == m1)
+        assertTrue(m2 == m3)
+        assertTrue(m3 == m1)
+        assertFalse(m1 == m4)
+    }
+
+    @Test
+    fun testComparator() {
+        val s1 = "a"
+        val u0 = Unit(symbol = s1)
+
+        val m1 = Measurement(2.0, UnitMass.kilograms)
+        val m2 = Measurement(3.0, UnitMass.kilograms)
+        val m3 = Measurement(2000.1, UnitMass.grams)
+        val m4 = Measurement(2000.0, UnitMass.grams)
+        val m5 = Measurement(2.0, UnitLength.kilometers)
+
+        val m6 = Measurement(2.1352, u0)
+
+        assertTrue(m1 < m2)
+        assertTrue(m2 > m1)
+        assertTrue(m1 < m3)
+        assertTrue(m3 > m1)
+        assertTrue(m1 <= m4)
+        assertTrue(m4 <= m1)
+        assertTrue(m1 >= m4)
+        assertTrue(m4 >= m1)
+
+        assertThrows(Exception::class.java) {
+            m1 < m6
+        }
+
+        assertThrows(Exception::class.java) {
+            m1 < m5
+        }
     }
 
     // <editor-fold desc="Calculations">

@@ -12,7 +12,18 @@ import java.math.RoundingMode
 import java.text.DecimalFormat
 import java.util.*
 
-class Measurement<in UnitType : Unit>(var value: Double, unit: UnitType) {
+/**
+ * A [Measurement] is a model that holds a [value] in the form of a [Double] associated with a [Unit]
+ *
+ * The [Measurement] has a full range of operator support, e.g. +, -, *, /, and also comparison operators.
+ */
+class Measurement<in UnitType : Unit>(
+    /**
+     * The value component of the [Measurement]
+     */
+    var value: Double,
+    unit: UnitType
+) {
 
     companion object {
 
@@ -29,6 +40,9 @@ class Measurement<in UnitType : Unit>(var value: Double, unit: UnitType) {
         }
     }
 
+    /**
+     * The unit component of the [Measurement]
+     */
     var unit: @UnsafeVariance UnitType = unit
         private set
 
@@ -69,32 +83,93 @@ class Measurement<in UnitType : Unit>(var value: Double, unit: UnitType) {
     override fun toString(): String {
         return "\"measurement\": { \"value\": \"$value\", \"symbol\": \"${unit.symbol}\" }"
     }
+
+    /**
+     * Compare two [Measurement]s of the same [Dimension].
+     * If both [unit]s are the same, just check if the [value]s are equal.
+     * Otherwise convert the [value]s to the [unit]s baseUnitValue and then compare the two values.
+     *
+     * @return 'true' if the measurements are equal.
+     */
+    //TODO: not sure what I want with the hashCode.
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        val oth = (other as? Measurement<*>) ?: return false
+
+        if (this.unit == oth.unit) {
+            return this.value == oth.value
+        } else {
+            val lhsUnit = this.unit as? Dimension
+            val rhsUnit = oth.unit as? Dimension
+
+            if (lhsUnit?.baseUnit() == rhsUnit?.baseUnit()) {
+                val lhsValue = lhsUnit?.converter?.baseUnitValue(this.value)
+                val rhsValue = rhsUnit?.converter?.baseUnitValue(oth.value)
+
+                return lhsValue == rhsValue
+            }
+            return false
+        }
+    }
 }
 
-fun <UnitType : Dimension> Measurement<UnitType>.format(@IntRange(0, Long.MAX_VALUE) maximumFractionDigits: Int = 2, measureFormat: MeasureFormat? = defaultFormat(maximumFractionDigits)): String {
+/**
+ * Returns the formatted measurement "[Measurement.value] [Measurement.unit.symbol]" -> e.g. "2.15 kg".
+ * Depending on the Android API version we will try to use the [MeasureFormat] if available.
+ * If the Android API is not high enough (version code N) or the specific unit is not available we will fall back to our own implementation.
+ *
+ * @param maximumFractionDigits The amount if digits after the decimal point
+ * @param locale The locale to use when Android API version is high enough (version code N) and the [MeasureFormat] can/will be used.
+ * @param measureFormat The specific formatter to be used when the [MeasureFormat] api is supported
+ * @return jklm
+ */
+fun <UnitType : Dimension> Measurement<UnitType>.format(
+    @IntRange(0, Int.MAX_VALUE.toLong()) maximumFractionDigits: Int = 2,
+    locale: Locale? = null,
+    measureFormat: MeasureFormat? = defaultFormat(maximumFractionDigits, locale ?: Locale.getDefault())
+): String {
 
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && unit.measureUnit != null && measureFormat != null) {
         return measureFormat.format(Measure(value, unit.measureUnit))
     }
 
-    val formatter = DecimalFormat("#." + (0..maximumFractionDigits).joinToString("") { "#" })
+    val formatter = DecimalFormat("#." + (0 until maximumFractionDigits).joinToString("") { "#" })
     formatter.roundingMode = RoundingMode.HALF_EVEN
     val formattedValue = formatter.format(value)
 
     return "$formattedValue ${unit.symbol}"
 }
 
-private fun defaultFormat(@IntRange(0, Long.MAX_VALUE) maximumFractionDigits: Int = 2): MeasureFormat? {
+private fun defaultFormat(@IntRange(0, Int.MAX_VALUE.toLong()) maximumFractionDigits: Int, locale: Locale): MeasureFormat? {
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
         return null
     }
 
-    val nFormat = NumberFormat.getNumberInstance(Locale.getDefault()).also {
+    val nFormat = NumberFormat.getNumberInstance(locale).also {
         it.maximumFractionDigits = maximumFractionDigits
     }
-    return MeasureFormat.getInstance(Locale.getDefault(), MeasureFormat.FormatWidth.SHORT, nFormat)
+    return MeasureFormat.getInstance(locale, MeasureFormat.FormatWidth.SHORT, nFormat)
 }
 
+operator fun <UnitType : Dimension> Measurement<UnitType>.compareTo(other: Measurement<UnitType>): Int {
+    if (this.unit == other.unit) {
+        return this.value.compareTo(other.value)
+    } else {
+        val error = Exception("Attempt to compare measurements with non-equal dimensions")
+
+        val lhsUnit = this.unit as? Dimension ?: throw error
+        val rhsUnit = other.unit as? Dimension ?: throw error
+
+        if (lhsUnit.baseUnit() == rhsUnit.baseUnit()) {
+            val lhsValue = lhsUnit.converter.baseUnitValue(this.value)
+            val rhsValue = rhsUnit.converter.baseUnitValue(other.value)
+
+            return lhsValue.compareTo(rhsValue)
+        }
+
+        throw error
+    }
+}
 
 /**
  * Returns a new measurement created by converting to the specified unit.
