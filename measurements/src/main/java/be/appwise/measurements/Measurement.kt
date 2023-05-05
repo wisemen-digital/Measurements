@@ -47,6 +47,9 @@ class Measurement<in UnitType : Unit>(
     var unit: @UnsafeVariance UnitType = unit
         private set
 
+    /**
+     * Returns the absolute [Measurement] of this [Measurement]
+     */
     val abs get() = Measurement(value.absoluteValue, unit)
 
     // <editor-fold desc="Additions">
@@ -81,8 +84,6 @@ class Measurement<in UnitType : Unit>(
     operator fun times(other: Short): Measurement<UnitType> = Measurement(value * other, unit)
     // </editor-fold>
 
-    val description get() = "$value ${unit.symbol}"
-
     override fun toString(): String {
         return "\"measurement\": { \"value\": \"$value\", \"symbol\": \"${unit.symbol}\" }"
     }
@@ -99,20 +100,18 @@ class Measurement<in UnitType : Unit>(
         if (this === other) return true
         val oth = (other as? Measurement<*>) ?: return false
 
-        if (this.unit == oth.unit) {
+        if (this.unit == oth.unit)
             return this.value == oth.value
-        } else {
-            val lhsUnit = this.unit as? Dimension
-            val rhsUnit = oth.unit as? Dimension
 
-            if (lhsUnit?.baseUnit() == rhsUnit?.baseUnit()) {
-                val lhsValue = lhsUnit?.converter?.baseUnitValue(this.value)
-                val rhsValue = rhsUnit?.converter?.baseUnitValue(oth.value)
+        val lhsUnit = this.unit as? Dimension
+        val rhsUnit = oth.unit as? Dimension
 
-                return lhsValue == rhsValue
-            }
-            return false
-        }
+        if (lhsUnit?.baseUnit() != rhsUnit?.baseUnit()) return false
+
+        val lhsValue = lhsUnit?.converter?.baseUnitValue(this.value)
+        val rhsValue = rhsUnit?.converter?.baseUnitValue(oth.value)
+
+        return lhsValue == rhsValue
     }
 }
 
@@ -132,9 +131,8 @@ fun <UnitType : Dimension> Measurement<UnitType>.format(
     measureFormat: MeasureFormat? = defaultFormat(maximumFractionDigits, locale ?: Locale.getDefault())
 ): String {
 
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && unit.measureUnit != null && measureFormat != null) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && unit.measureUnit != null && measureFormat != null)
         return measureFormat.format(Measure(value, unit.measureUnit))
-    }
 
     val formatter = DecimalFormat("#." + (0 until maximumFractionDigits).joinToString("") { "#" })
     formatter.roundingMode = RoundingMode.HALF_EVEN
@@ -155,23 +153,20 @@ private fun defaultFormat(@IntRange(0, Int.MAX_VALUE.toLong()) maximumFractionDi
 }
 
 operator fun <UnitType : Dimension> Measurement<UnitType>.compareTo(other: Measurement<UnitType>): Int {
-    if (this.unit == other.unit) {
+    if (this.unit == other.unit)
         return this.value.compareTo(other.value)
-    } else {
-        val error = Exception("Attempt to compare measurements with non-equal dimensions")
 
-        val lhsUnit = this.unit as? Dimension ?: throw error
-        val rhsUnit = other.unit as? Dimension ?: throw error
+    val error = Exception("Attempt to compare measurements with non-equal dimensions")
 
-        if (lhsUnit.baseUnit() == rhsUnit.baseUnit()) {
-            val lhsValue = lhsUnit.converter.baseUnitValue(this.value)
-            val rhsValue = rhsUnit.converter.baseUnitValue(other.value)
+    val lhsUnit = this.unit as? Dimension ?: throw error
+    val rhsUnit = other.unit as? Dimension ?: throw error
 
-            return lhsValue.compareTo(rhsValue)
-        }
+    if (lhsUnit.baseUnit() != rhsUnit.baseUnit()) throw error
 
-        throw error
-    }
+    val lhsValue = lhsUnit.converter.baseUnitValue(this.value)
+    val rhsValue = rhsUnit.converter.baseUnitValue(other.value)
+
+    return lhsValue.compareTo(rhsValue)
 }
 
 /**
@@ -181,17 +176,15 @@ operator fun <UnitType : Dimension> Measurement<UnitType>.compareTo(other: Measu
  * @return A converted measurement
  */
 fun <UnitType : Dimension> Measurement<UnitType>.converted(otherUnit: UnitType): Measurement<UnitType> {
-    return if (unit == otherUnit) {
-        Measurement(value, otherUnit)
-    } else {
-        val valueInTermsOfBase = unit.converter.baseUnitValue(value)
-        if (otherUnit == otherUnit.baseUnit()) {
-            Measurement(valueInTermsOfBase, otherUnit)
-        } else {
-            val otherValueFromTermsOfBase = otherUnit.converter.value(valueInTermsOfBase)
-            Measurement(otherValueFromTermsOfBase, otherUnit)
-        }
-    }
+    if (unit == otherUnit)
+        return Measurement(value, otherUnit)
+
+    val valueInTermsOfBase = unit.converter.baseUnitValue(value)
+    if (otherUnit == otherUnit.baseUnit())
+        return Measurement(valueInTermsOfBase, otherUnit)
+
+    val otherValueFromTermsOfBase = otherUnit.converter.value(valueInTermsOfBase)
+    return Measurement(otherValueFromTermsOfBase, otherUnit)
 }
 
 /**
@@ -203,17 +196,15 @@ fun <UnitType : Dimension> Measurement<UnitType>.converted(otherUnit: UnitType):
  * @exception Throws an exception when 2 different unit types are being added with each other (e.g. [be.appwise.measurements.units.UnitMass] and [be.appwise.measurements.units.UnitLength].
  */
 operator fun <UnitType : Dimension> Measurement<UnitType>.plus(other: Measurement<UnitType>): Measurement<UnitType> {
-    return if (other.unit.javaClass == this.unit.javaClass) {
-        if (other.unit == unit) {
-            Measurement(value + other.value, unit)
-        } else {
-            val lhsValueInTermsOfBase = unit.converter.baseUnitValue(value)
-            val otherValueInTermsOfBase = other.unit.converter.baseUnitValue(other.value)
-            Measurement(lhsValueInTermsOfBase + otherValueInTermsOfBase, unit.baseUnit())
-        }
-    } else {
+    if (other.unit.javaClass != this.unit.javaClass)
         throw Exception("Attempt to add measurements with non-equal units: ${unit.symbol} and ${other.unit.symbol}")
-    }
+
+    if (other.unit == unit)
+        return Measurement(value + other.value, unit)
+
+    val lhsValueInTermsOfBase = unit.converter.baseUnitValue(value)
+    val otherValueInTermsOfBase = other.unit.converter.baseUnitValue(other.value)
+    return Measurement(lhsValueInTermsOfBase + otherValueInTermsOfBase, unit.baseUnit())
 }
 
 /**
@@ -222,21 +213,19 @@ operator fun <UnitType : Dimension> Measurement<UnitType>.plus(other: Measuremen
  *
  *  If the [Measurement.unit] of this object and [other] are [equals], then this returns the result of subtracting the [Measurement.value] of each [Measurement].
  *  If they are not equal, then this will convert both to the base unit of the [Dimension] and return the result as a [Measurement] of that base unit.
- *  @return The result of adding the two measurements.
+ *  @return The result of subtracting the two measurements.
  * @exception Throws an exception when 2 different unit types are being subtracted from each other (e.g. [be.appwise.measurements.units.UnitMass] and [be.appwise.measurements.units.UnitLength].
  */
 operator fun <UnitType : Dimension> Measurement<UnitType>.minus(other: Measurement<UnitType>): Measurement<UnitType> {
-    return if (other.unit.javaClass == this.unit.javaClass) {
-        if (other.unit == unit) {
-            Measurement(value - other.value, unit)
-        } else {
-            val lhsValueInTermsOfBase = unit.converter.baseUnitValue(value)
-            val otherValueInTermsOfBase = other.unit.converter.baseUnitValue(other.value)
-            Measurement(lhsValueInTermsOfBase - otherValueInTermsOfBase, unit.baseUnit())
-        }
-    } else {
+    if (other.unit.javaClass != this.unit.javaClass)
         throw Exception("Attempt to add measurements with non-equal units: ${unit.symbol} and ${other.unit.symbol}")
-    }
+
+    if (other.unit == unit)
+        return Measurement(value - other.value, unit)
+
+    val lhsValueInTermsOfBase = unit.converter.baseUnitValue(value)
+    val otherValueInTermsOfBase = other.unit.converter.baseUnitValue(other.value)
+    return Measurement(lhsValueInTermsOfBase - otherValueInTermsOfBase, unit.baseUnit())
 }
 
 /**
@@ -244,21 +233,19 @@ operator fun <UnitType : Dimension> Measurement<UnitType>.minus(other: Measureme
  *
  * If the [Measurement.unit] of this object and [other] are [equals], then this returns the result of dividing the [Measurement.value] of each [Measurement].
  * If they are not equal, then this will convert both to the base unit of the [Dimension] and return the result as a [Measurement] of that base unit.
- * @return The result of adding the two measurements.
+ * @return The result of dividing the two measurements.
  * @exception Throws an exception when 2 different unit types are being divided by each other (e.g. [be.appwise.measurements.units.UnitMass] and [be.appwise.measurements.units.UnitLength].
  */
 operator fun <UnitType : Dimension> Measurement<UnitType>.div(other: Measurement<UnitType>): Measurement<UnitType> {
-    return if (other.unit.javaClass == this.unit.javaClass) {
-        if (other.unit == unit) {
-            Measurement(value / other.value, unit)
-        } else {
-            val lhsValueInTermsOfBase = unit.converter.baseUnitValue(value)
-            val otherValueInTermsOfBase = other.unit.converter.baseUnitValue(other.value)
-            Measurement(lhsValueInTermsOfBase / otherValueInTermsOfBase, unit.baseUnit())
-        }
-    } else {
+    if (other.unit.javaClass != this.unit.javaClass)
         throw Exception("Attempt to add measurements with non-equal units: ${unit.symbol} and ${other.unit.symbol}")
-    }
+
+    if (other.unit == unit)
+        return Measurement(value / other.value, unit)
+
+    val lhsValueInTermsOfBase = unit.converter.baseUnitValue(value)
+    val otherValueInTermsOfBase = other.unit.converter.baseUnitValue(other.value)
+    return Measurement(lhsValueInTermsOfBase / otherValueInTermsOfBase, unit.baseUnit())
 }
 
 /**
@@ -266,20 +253,41 @@ operator fun <UnitType : Dimension> Measurement<UnitType>.div(other: Measurement
  *
  * If the [Measurement.unit] of this object and [other] are [equals], then this returns the result of multiplying the [Measurement.value] of each [Measurement].
  * If they are not equal, then this will convert both to the base unit of the [Dimension] and return the result as a [Measurement] of that base unit.
- * @return The result of adding the two measurements.
+ * @return The result of multiplying the two measurements.
  * @exception Throws an exception when 2 different unit types are being multiplied by each other (e.g. [be.appwise.measurements.units.UnitMass] and [be.appwise.measurements.units.UnitLength].
  */
 operator fun <UnitType : Dimension> Measurement<UnitType>.times(other: Measurement<UnitType>): Measurement<UnitType> {
-    return if (other.unit.javaClass == this.unit.javaClass) {
-        if (other.unit == unit) {
-            Measurement(value * other.value, unit)
-        } else {
-            val lhsValueInTermsOfBase = unit.converter.baseUnitValue(value)
-            val otherValueInTermsOfBase = other.unit.converter.baseUnitValue(other.value)
-            Measurement(lhsValueInTermsOfBase * otherValueInTermsOfBase, unit.baseUnit())
-        }
-    } else {
+    if (other.unit.javaClass != this.unit.javaClass)
         throw Exception("Attempt to add measurements with non-equal units: ${unit.symbol} and ${other.unit.symbol}")
-    }
+
+    if (other.unit == unit)
+        return Measurement(value * other.value, unit)
+
+    val lhsValueInTermsOfBase = unit.converter.baseUnitValue(value)
+    val otherValueInTermsOfBase = other.unit.converter.baseUnitValue(other.value)
+    return Measurement(lhsValueInTermsOfBase * otherValueInTermsOfBase, unit.baseUnit())
 }
 
+/**
+ * Make the sum of all items in the collection.
+ *
+ * If the [Measurement.unit] of all objects in the list are [equals], then this returns the result of adding the [Measurement.value] of each [Measurement].
+ * If they are not equal, then this will convert all items in the list to the base unit of the [Dimension] and return the result as a [Measurement] of that base unit.
+ * @return The result of adding all the measurements in the list.
+ * @exception Throws an exception when 2 different unit types are found in the list (e.g. [be.appwise.measurements.units.UnitMass] and [be.appwise.measurements.units.UnitLength].
+ */
+fun <UnitType : Dimension> Collection<Measurement<UnitType>>.sum(): Measurement<UnitType>? {
+    if (this.isEmpty())
+        return null
+
+    val firstItem = this.first()
+
+    if (!this.all { it.unit.javaClass == firstItem.unit.javaClass })
+        throw Exception("Attempt to add measurements with non-equal units")
+
+    if (this.all { it.unit == firstItem.unit })
+        return Measurement(this.sumOf { it.value }, firstItem.unit)
+
+    val convertedMap = this.sumOf { it.unit.converter.baseUnitValue(it.value) }
+    return Measurement(convertedMap, firstItem.unit.baseUnit())
+}

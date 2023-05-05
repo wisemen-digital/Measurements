@@ -25,15 +25,6 @@ import java.util.*
 internal class MeasurementTest {
 
     @Test
-    fun testDescription() {
-        val m1 = Measurement(1.0, UnitMass.grams)
-        val m2 = Measurement(1.0, UnitLength.kilometers)
-
-        assertEquals("1.0 g", m1.description)
-        assertEquals("1.0 km", m2.description)
-    }
-
-    @Test
     fun testConversion() {
         val m1 = Measurement(1.0, UnitMass.grams)
 
@@ -371,6 +362,24 @@ internal class MeasurementTest {
         val m1 = Measurement(1.0, UnitMass.grams)
 
         assertEquals(2.0, (m1 * 2.toShort()).value)
+    }
+
+    @Test
+    fun testCollectionSum() {
+        val delta = 1e-9
+
+        val m1 = Measurement(1.0, UnitMass.grams)
+        val m2 = Measurement(2.0, UnitMass.grams)
+        val m3 = Measurement(40.0, UnitMass.centigrams)
+        val m4 = Measurement(3.0, UnitLength.kilometers)
+
+        assertEquals(3.0, listOf(m1, m2).sum()?.value)
+        assertEquals(0.0034, listOf(m1, m2, m3).sum()?.value ?: 0.0, delta)
+        assertEquals(null, listOf<Measurement<UnitMass>>().sum()?.value)
+
+        assertThrows(Exception::class.java) {
+            listOf(m1, m2, m3, m4).sum()?.value
+        }
     }
     // </editor-fold>
 }
