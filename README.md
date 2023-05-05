@@ -1,4 +1,6 @@
-# Networking
+[![](https://jitpack.io/v/appwise-labs/measurements.svg)](https://jitpack.io/#appwise-labs/measurements)
+
+# Measurements
 
 ## Table of Contents
 
