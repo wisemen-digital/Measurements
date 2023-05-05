@@ -55,7 +55,7 @@ task sourceJar(type: Jar) {
 
 publishing {
     publications {
-        release(MavenPublication) {
+        maven(MavenPublication) {
             groupId = 'com.github.appwise-labs'
 //            artifactId = 'my-library'
 //            version = '1.0'
