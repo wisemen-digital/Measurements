@@ -163,6 +163,17 @@ internal class MeasurementTest {
 
     // <editor-fold desc="Calculations">
     @Test
+    fun testAbsolution() {
+        val m1 = Measurement(-1.0, UnitMass.grams)
+        val m2 = Measurement(-2.829, UnitMass.grams)
+        val m3 = Measurement(3.0, UnitMass.centigrams)
+
+        assertEquals(1.0, m1.abs.value)
+        assertEquals(2.829, m2.abs.value)
+        assertEquals(3.0, m3.abs.value)
+    }
+
+    @Test
     fun testAddition() {
         val m1 = Measurement(1.0, UnitMass.grams)
         val m2 = Measurement(2.0, UnitMass.grams)
