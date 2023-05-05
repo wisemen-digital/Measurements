@@ -1,6 +1,6 @@
 buildscript {
     ext {
-        compose_version = '1.2.0'
+        compose_version = '1.4.0'
         core_ktx_version = "1.10.0"
     }
 }
