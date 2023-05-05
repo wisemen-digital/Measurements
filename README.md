@@ -14,7 +14,7 @@ To add this library to your project, you'll have to add the following dependency
 ```groovy
 dependencies {
   ...
-  implementation 'com.github.appwise-labs.measurements:<Latest-Version>'
+  implementation 'com.github.appwise-labs:measurements:<Latest-Version>'
 }
 ```
 
