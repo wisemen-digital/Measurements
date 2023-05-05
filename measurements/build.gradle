@@ -4,8 +4,6 @@ plugins {
     id 'maven-publish'
 }
 
-group = 'com.github.appwise-labs'
-
 android {
     compileSdkVersion 33
 
@@ -47,10 +45,6 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter'
 
     testImplementation "io.mockk:mockk:1.13.4"
-
-//    testImplementation "junit:junit:$junit_version"
-//    androidTestImplementation "androidx.test.ext:junit:$junit_ext_version"
-//    androidTestImplementation "androidx.test.espresso:espresso-core:$espresso_core_version"
 }
 
 task sourceJar(type: Jar) {
