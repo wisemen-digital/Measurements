@@ -11,6 +11,7 @@ import be.appwise.measurements.units.Unit
 import java.math.RoundingMode
 import java.text.DecimalFormat
 import java.util.*
+import kotlin.math.absoluteValue
 
 /**
  * A [Measurement] is a model that holds a [value] in the form of a [Double] associated with a [Unit]
@@ -45,6 +46,8 @@ class Measurement<in UnitType : Unit>(
      */
     var unit: @UnsafeVariance UnitType = unit
         private set
+
+    val abs get() = Measurement(value.absoluteValue, unit)
 
     // <editor-fold desc="Additions">
     operator fun plus(other: Double): Measurement<UnitType> = Measurement(value + other, unit)
