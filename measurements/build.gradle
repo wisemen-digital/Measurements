@@ -52,16 +52,31 @@ task sourceJar(type: Jar) {
     classifier "sources"
 }
 
-afterEvaluate {
-    publishing {
-        publications {
-            release(MavenPublication) {
+
+publishing {
+    publications {
+        release(MavenPublication) {
+            groupId = 'com.github.appwise-labs'
+//            artifactId = 'my-library'
+//            version = '1.0'
+
+            afterEvaluate {
                 from components.release
-
-                groupId = 'com.github.appwise-labs'
-
-                artifact(sourceJar)
             }
         }
     }
 }
+
+//afterEvaluate {
+//    publishing {
+//        publications {
+//            release(MavenPublication) {
+//                from components.release
+//
+//                groupId = 'com.github.appwise-labs'
+//
+//                artifact(sourceJar)
+//            }
+//        }
+//    }
+//}
